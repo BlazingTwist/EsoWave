@@ -1,0 +1,31 @@
+{
+
+.{
+	render modes:
+	0 - combined
+	1 - density gray
+	2 - absolute xy velocity
+.}
+0	:render_mode;
+1	:drag_intensity;	.# float
+1	:drag_density_gain;	.# float
+
+0   :print_frame_delta; .# bool (0|1) print delta-time per frame
+
+10 :pixel_size;			.# int (scale up sim-pixels so you can see them :) )
+100 :grid_size_x;		.# int (number of simulated pixels in x direction)
+30 :grid_size_y;		.# int (number of simulated pixels in y direction)
+15 :solver_iterations;	.# number of iterations for gauss seidel algorithm, 15 looks fine
+
+0.001 :diffusion_rate;	.# controls the diffusion_rate of the fluids densities
+1.0 :advection_rate;	.# scales the velocities in the fluid
+0.1 :projection_rate;
+0.1 :viscosity;			.# controls the diffusion rate of the fluids velocities
+
+.# initialize fluid
+[grid_size_y 2+,][grid_size_x 2+,]	{y x, 255 Q}:*		:densities;
+[grid_size_y 2+,][grid_size_x 2+,]	{y x, .Q 0.5-}:*	:velocity_x;
+[grid_size_y 2+,][grid_size_x 2+,]	{y x, .Q 0.5-}:*	:velocity_y;
+
+}:config;
+export ::config

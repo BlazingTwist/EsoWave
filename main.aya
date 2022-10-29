@@ -1,0 +1,135 @@
+.{
+	This main is a mess, I'm sorry.
+.}
+
+import ::canvas
+import ::matrix
+"utils\\fluid_logic" importlib.import
+"utils\\interactive_ui" importlib.import
+"config" importlib.import config .# execute config to load it
+"ui_setup" importlib.import ui_setup
+
+grid_size_x 2+ grid_size_y 2+ solver_iterations fluid_logic! :fluid;
+
+grid_size_y 2+ 2/ :center;
+[grid_size_y 2+,][grid_size_x 2+,]{y x, 10 x5-$* y center -$*0.4* + - 0.< 20 *}:* matrix! :velocity_gain_x;
+[grid_size_y 2+,][grid_size_x 2+,]{y x, 0}:* matrix! :velocity_gain_y;
+
+2: cur_vx_max;
+2: cur_vy_max;
+128: cur_d_max;
+
+{cur target,
+	target cur - 0.1* cur+
+}:move_towards;
+
+{densities velocity_x velocity_y,
+	densities    E :size_y;
+	densities.[0]E :size_x;
+	densities :#{{.|\.|.<}/}{.<}/ :d_max;
+	
+	cur_d_max d_max move_towards 0.5.< :cur_d_max;
+	
+	[ [size_x.R {:&} size_y 1-%]   [size_y.R {:&} size_x 1-%].T   densities ]
+	.T:#{.T:#{~ :d; :y; :x;
+		d.| cur_d_max/ 255* 255.> :& :& _canvas.id:{graphics.set_color}
+		x pixel_size* y pixel_size* pixel_size pixel_size _canvas.fillrect
+	}};
+}:draw_density_gray;
+
+{densities velocity_x velocity_y,
+	densities    E :size_y;
+	densities.[0]E :size_x;
+	velocity_x :#{{.|\.|.<}/}{.<}/ :vx_max;
+	velocity_y :#{{.|\.|.<}/}{.<}/ :vy_max;
+	densities :#{{.|\.|.<}/}{.<}/ :d_max;
+	
+	cur_vx_max vx_max move_towards 0.5.< :cur_vx_max;
+	cur_vy_max vy_max move_towards 0.5.< :cur_vy_max;
+	cur_d_max  d_max  move_towards 0.5.< :cur_d_max;
+
+	[ [size_x.R {:&} size_y 1-%]   [size_y.R {:&} size_x 1-%].T   densities velocity_x velocity_y ]
+	.T:#{.T:#{~ :vy; :vx; :d; :y; :x;
+		vx.| cur_vx_max/ 255* 255.> vy.| cur_vy_max/ 255* 255.> d.| cur_d_max/ 255* 255.> _canvas.id:{graphics.set_color}
+		x pixel_size * y pixel_size * pixel_size pixel_size _canvas.fillrect
+	}};
+}:draw_all;
+
+{densities velocity_x velocity_y,
+	densities    E :size_y;
+	densities.[0]E :size_x;
+	velocity_x :#{{.|\.|.<}/}{.<}/ :vx_max;
+	velocity_y :#{{.|\.|.<}/}{.<}/ :vy_max;
+	
+	cur_vx_max vx_max move_towards 0.5.< :cur_vx_max;
+	cur_vy_max vy_max move_towards 0.5.< :cur_vy_max;
+	
+	[ [size_x.R {:&} size_y 1-%]   [size_y.R {:&} size_x 1-%].T   velocity_x velocity_y ]
+	.T:#{.T:#{~ :vy; :vx; :y; :x;
+		vx.| cur_vx_max/ 255* 255.> vy.| cur_vy_max/ 255* 255.> 0 _canvas.id:{graphics.set_color}
+		x pixel_size * y pixel_size * pixel_size pixel_size _canvas.fillrect
+	}};
+}:draw_velocity_abs;
+
+[
+	{draw_all}
+	{draw_density_gray}
+	{draw_velocity_abs}
+]:render_functions;
+
+{	
+	_canvas.id :{graphics.click_events} :events;
+	events ui.check_buttons
+	
+	_canvas.id :{graphics.drag_events} :& E 1> {
+		V :prev_event; :#{event,
+			prev_event.x pixel_size .% 1.< grid_size_x.> :xo;
+			prev_event.y pixel_size .% 1.< grid_size_y.> :yo;
+			
+			event.time_ms prev_event.time_ms - :dt;
+			event.x prev_event.x - :dx;
+			event.y prev_event.y - :dy;
+			event :prev_event;
+			
+			dx 0 = ! { dx dt* drag_intensity* velocity_gain_x.rows yo I :& xo I @ + \ xo D; } ?
+			dy 0 = ! { dy dt* drag_intensity* velocity_gain_y.rows yo I :& xo I @ + \ xo D; } ?
+			drag_density_gain dt* densities yo I :& xo I @ + \ xo D;
+		};
+	} {;} .?
+
+	print_frame_delta {M$ :start;}?
+	
+	.# apply velocity gain
+	velocity_x matrix._new velocity_gain_x + .rows :velocity_x;
+	velocity_y matrix._new velocity_gain_y + .rows :velocity_y;
+	
+	.# damp gains
+	velocity_gain_x 0.8 * :velocity_gain_x;
+	velocity_gain_y 0.8 * :velocity_gain_y;
+	
+	.# disperse density
+	densities matrix._new 0.99 * .rows :densities;
+	
+	.# handle velocity update
+	velocity_x velocity_y advection_rate projection_rate viscosity fluid.simulate_velocity :velocity_y; :velocity_x;
+	
+	.# handle density update
+	densities velocity_x velocity_y diffusion_rate advection_rate fluid.simulate_density :densities;
+	
+	.# draw canvas
+	densities matrix._new:1\.pad.rows
+	velocity_x matrix._new:1\.pad.rows
+	velocity_y matrix._new:1\.pad.rows
+	render_functions render_mode I ~
+	
+	print_frame_delta {
+		M$ :end;
+		"frame delta: "end start - + " ms"+ :P
+	}?
+	
+	_canvas.show
+
+	17 :Z
+	
+	_canvas.isopen
+}W

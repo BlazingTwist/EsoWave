@@ -1,0 +1,106 @@
+import ::canvas
+
+export ::ui_style
+export ::interactive_ui
+
+class ui_style
+	.# ui_style constructor taking the following optional parameters as a dictionary
+	.#   'font' -> name of the font to use
+	.#   'style' -> style for the font (e.g. "bold")
+	.#   'size' -> size for the font
+	.#   'r' 'g' 'b' 'a' -> rgba values [0,255] to use as text color
+	def ui_style::__init__ {params::dict self,
+		{, .# default parameters
+			"Arial" :font
+			"bold" :style
+			15 :size
+			0 :r
+			0 :g
+			0 :b
+			255 :a
+			params W
+		}:params;
+		
+		params :# {key value, value self.:[key];};
+	}
+
+	.# implement toString method
+	def ui_style::__repr__ {self,
+		"ui_style<font: '$(self.font)', style: '$(self.style)', size: '$(self.size)'>"
+	}
+	
+	.# load the style defined by this ui_style to the canvas
+	def ui_style::load_style {_canvas self,
+		self.r self.g self.b {self.a 255 /}~ _canvas.id :{graphics.set_color_alpha}
+		self.font self.style self.size _canvas.id :{graphics.set_font}
+	}
+
+
+class interactive_ui
+	
+	def interactive_ui::__init__ {
+			x::num		.# start x coordinate of ui
+			y::num		.# start y coordinate of ui
+			width::num	.# width of ui
+			height::num	.# height of ui
+			_canvas		.# canvas instance
+			self,
+		
+		x self.:x;
+		y self.:y;
+		width self.:width;
+		height self.:height;
+		_canvas self.:_canvas;
+		[] self.:_active_buttons; .# entries are dict {, action::block xs::num ys::num xe::num ye::num}
+		
+		{,30:size}ui_style! self.:header_style;
+		{,20:size 230:r 230:g 230:b}ui_style! self.:button_label_style;
+		{,20:size 89:r 57:g 89:b}ui_style! self.:button_bg_style;
+		{,20:size 66:r 42:g 66:b}ui_style! self.:button_border_style;
+	}
+	
+	def interactive_ui::set_header_style {style::ui_style self,
+		style self.:header_style;
+	}
+	
+	def interactive_ui::set_button_style {label_style::ui_style background_style::ui_style border_style::ui_style self,
+		label_style self.:button_label_style;
+		background_style self.:button_bg_style;
+		border_style self.:button_border_style;
+	}
+	
+	def interactive_ui::header {text x y self,
+		_canvas self.header_style.load_style
+		text x self.x + y self.y + _canvas.id :{graphics.text}
+	}
+	
+	def interactive_ui::button {label label_offset_x label_offset_y x y width height arc_radius on_click::list self,
+		_canvas self.button_border_style.load_style
+		x self.x + y self.y + width height arc_radius :& 1 _canvas.id :{graphics.round_rect}
+		_canvas self.button_bg_style.load_style
+		x self.x+2+ y self.y+2+ width 4- height 4- arc_radius :& 1 _canvas.id :{graphics.round_rect}
+		
+		_canvas self.button_label_style.load_style
+		height self.button_label_style.size - 0.5* self.button_label_style.size+ :offset_y;
+		label x self.x+label_offset_x+ y self.y+offset_y+label_offset_y+ _canvas.id :{graphics.text}
+		
+		{,
+			on_click.*:action
+			x self.x+ :xs
+			x self.x+width+ :xe
+			y self.y+ :ys
+			y self.y+height+ :ye
+		} self._active_buttons .B;
+	}
+	
+	def interactive_ui::check_buttons {click_events::list self,
+		click_events :#{event,
+			event.x :ev_x;
+			event.y :ev_y;
+			self._active_buttons :# {button_data,
+				ev_x button_data.xe :<  ev_x button_data.xs :> &
+				ev_y button_data.ye :<  ev_y button_data.ys :> & &
+				{event button_data.action} ?
+			};
+		};
+	}
