@@ -15,9 +15,9 @@ grid_size_y 2+ 2/ :center;
 [grid_size_y 2+,][grid_size_x 2+,]{y x, 10 x5-$* y center -$*0.4* + - 0.< 20 *}:* matrix! :velocity_gain_x;
 [grid_size_y 2+,][grid_size_x 2+,]{y x, 0}:* matrix! :velocity_gain_y;
 
-2: cur_vx_max;
-2: cur_vy_max;
-128: cur_d_max;
+20: cur_vx_max;
+20: cur_vy_max;
+255: cur_d_max;
 
 {cur target,
 	target cur - 0.1* cur+
