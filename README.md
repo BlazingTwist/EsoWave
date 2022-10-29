@@ -15,4 +15,4 @@
 
 ## Aya
 
-Get it [here](https://github.com/BlazingTwist/aya/tree/mouse_input)
+Get it [here](https://github.com/BlazingTwist/aya/releases/tag/mouse_support_v1)
