@@ -17,9 +17,9 @@ _canvas.show
 
 grid_size_x pixel_size* 0 ui_width grid_size_y pixel_size* _canvas interactive_ui! :ui;
 "Render Mode" 10 35 ui.header
-"Combined" 10 :2 20 55 200 40 5 {;0:render_mode;}.* ui.button
-"Density Grayscale" 10 :2 20 100 200 40 5 {;1:render_mode;}.* ui.button
-"Velocity X/Y abs" 10 :2 20 145 200 40 5 {;2:render_mode;}.* ui.button
+"Combined"          10 :2 20 55  200 40 5 {event, 0:render_mode;} ui.button
+"Density Grayscale" 10 :2 20 100 200 40 5 {event, 1:render_mode;} ui.button
+"Velocity X/Y abs"  10 :2 20 145 200 40 5 {event, 2:render_mode;} ui.button
 
 
 }:ui_setup;

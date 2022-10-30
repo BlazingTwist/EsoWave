@@ -74,7 +74,7 @@ class interactive_ui
 		text x self.x + y self.y + _canvas.id :{graphics.text}
 	}
 	
-	def interactive_ui::button {label label_offset_x label_offset_y x y width height arc_radius on_click::list self,
+	def interactive_ui::button {label label_offset_x label_offset_y x y width height arc_radius on_click::block self,
 		_canvas self.button_border_style.load_style
 		x self.x + y self.y + width height arc_radius :& 1 _canvas.id :{graphics.round_rect}
 		_canvas self.button_bg_style.load_style
@@ -85,7 +85,7 @@ class interactive_ui
 		label x self.x+label_offset_x+ y self.y+offset_y+label_offset_y+ _canvas.id :{graphics.text}
 		
 		{,
-			on_click.*:action
+			on_click.`:action
 			x self.x+ :xs
 			x self.x+width+ :xe
 			y self.y+ :ys
