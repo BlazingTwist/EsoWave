@@ -7,10 +7,10 @@
 	2 - absolute xy velocity
 .}
 0	:render_mode;
-0.1	:drag_intensity;	.# float
+0.5	:drag_intensity;	.# float
 1	:drag_density_gain;	.# float
 
-0   :print_frame_delta; .# bool (0|1) print delta-time per frame
+1   :print_frame_delta; .# bool (0|1) print delta-time per frame
 
 10 :pixel_size;			.# int (scale up sim-pixels so you can see them :) )
 100 :grid_size_x;		.# int (number of simulated pixels in x direction)

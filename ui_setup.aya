@@ -11,9 +11,8 @@ import ::canvas
 	grid_size_x pixel_size* ui_width+ :width
 	1 :scale
 } canvas! :_canvas;
-1 _canvas.set_alpha
 _canvas.show
-500 :Z
+1 _canvas.set_alpha
 
 grid_size_x pixel_size* 0 ui_width grid_size_y pixel_size* _canvas interactive_ui! :ui;
 "Render Mode" 10 35 ui.header

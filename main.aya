@@ -77,25 +77,42 @@ grid_size_y 2+ 2/ :center;
 	{draw_velocity_abs}
 ]:render_functions;
 
-{	
+M$ :prev_time;
+[0 0] :prev_cursor_position;
+{
+	M$ :cur_time;
+	cur_time prev_time - :delta_ms;
+
 	_canvas.id :{graphics.click_events} :events;
 	events ui.check_buttons
 	
-	_canvas.id :{graphics.drag_events} :& E 1> {
-		V :prev_event; :#{event,
-			prev_event.x pixel_size .% 1.< grid_size_x.> :xo;
-			prev_event.y pixel_size .% 1.< grid_size_y.> :yo;
-			
-			event.time_ms prev_event.time_ms - :dt;
-			event.x prev_event.x - :dx;
-			event.y prev_event.y - :dy;
-			event :prev_event;
-			
-			dx 0 = ! { dx dt* drag_intensity* velocity_gain_x.rows yo I :& xo I @ + \ xo D; } ?
-			dy 0 = ! { dy dt* drag_intensity* velocity_gain_y.rows yo I :& xo I @ + \ xo D; } ?
-			drag_density_gain dt* densities yo I :& xo I @ + \ xo D;
-		};
-	} {;} .?
+	_canvas.id :{graphics.move_events} :move_events;
+	
+	.# if left-click is down, handle move events as dragging
+	_canvas.id :{graphics.pressed_buttons} 1 N 0<! :left_click_held; ;
+	move_events E 0> {
+		left_click_held {
+			delta_ms move_events E / :move_dt;
+			prev_cursor_position~ :prev_y; :prev_x;
+			move_events :# {move_event,
+				prev_x pixel_size .% 1.< grid_size_x.> :xo;
+				prev_y pixel_size .% 1.< grid_size_y.> :yo;
+				move_event.x prev_x - :dx;
+				move_event.y prev_y - :dy;
+				
+				dx 0 = ! { dx move_dt * drag_intensity * velocity_gain_x.rows yo I :& xo I @ + \ xo D; } ?
+				dy 0 = ! { dy move_dt * drag_intensity * velocity_gain_y.rows yo I :& xo I @ + \ xo D; } ?
+				drag_density_gain move_dt * densities yo I :& xo I @ + \ xo D;
+				
+				move_event.x :prev_x;
+				move_event.y :prev_y;
+			}
+			[prev_x prev_y] :prev_cursor_position;
+		} {
+			move_events B :final_move_event; ;
+			[final_move_event.x final_move_event.y] :prev_cursor_position;
+		} .?
+	} ?
 
 	print_frame_delta {M$ :start;}?
 	
@@ -129,7 +146,7 @@ grid_size_y 2+ 2/ :center;
 	
 	_canvas.show
 
-	17 :Z
-	
+	cur_time :prev_time;
+	17 :Z	
 	_canvas.isopen
 }W
