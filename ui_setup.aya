@@ -1,7 +1,7 @@
 {
 
 import ::canvas
-"utils\\interactive_ui" importlib.import
+"utils/interactive_ui" importlib.import
 
 250 :ui_width;
 

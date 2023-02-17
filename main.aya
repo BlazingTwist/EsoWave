@@ -4,8 +4,8 @@
 
 import ::canvas
 import ::matrix
-"utils\\fluid_logic" importlib.import
-"utils\\interactive_ui" importlib.import
+import "utils.fluid_logic"
+"utils.interactive_ui" importlib.import
 "config" importlib.import config .# execute config to load it
 "ui_setup" importlib.import ui_setup
 
