@@ -4,6 +4,7 @@
 
 
 import ::canvas
+import ::time
 import "utils.fluid_logic"
 "utils.interactive_ui" importlib.import
 "config" importlib.import config .# execute config to load it
@@ -79,6 +80,8 @@ grid_size_y 2+ 2/ :center;
 
 M$ :prev_time;
 [0 0] :prev_cursor_position;
+0:avg_time;
+50 time.rate!:limiter;
 {
 	M$ :cur_time;
 	cur_time prev_time - :delta_ms;
@@ -141,12 +144,14 @@ M$ :prev_time;
 	
 	print_frame_delta {
 		M$ :end;
-		"frame delta: "end start - + " ms"+ :P
+		end start - :delta;
+		avg_time 0.95 * delta 0.05 * + :avg_time;
+		"frame delta: $delta ms (avg $avg_time)":P
 	}?
 	
 	_canvas.show
 
 	cur_time :prev_time;
-	17 :Z	
+	limiter.sleep
 	_canvas.isopen
 }W
