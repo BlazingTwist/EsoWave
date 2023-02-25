@@ -2,10 +2,8 @@
 	This main is a mess, I'm sorry.
 .}
 
-bp
 
 import ::canvas
-import ::matrix
 import "utils.fluid_logic"
 "utils.interactive_ui" importlib.import
 "config" importlib.import config .# execute config to load it
@@ -14,8 +12,8 @@ import "utils.fluid_logic"
 grid_size_x 2+ grid_size_y 2+ solver_iterations fluid_logic! :fluid;
 
 grid_size_y 2+ 2/ :center;
-[grid_size_y 2+,][grid_size_x 2+,]{y x, 10 x5-$* y center -$*0.4* + - 0.< 20 *}:* matrix! :velocity_gain_x;
-[grid_size_y 2+,][grid_size_x 2+,]{y x, 0}:* matrix! :velocity_gain_y;
+[grid_size_y 2+,][grid_size_x 2+,]{y x, 10 x5-$* y center -$*0.4* + - 0.< 20 *}:* :velocity_gain_x;
+[grid_size_y 2+,][grid_size_x 2+,]{y x, 0}:* :velocity_gain_y;
 
 20: cur_vx_max;
 20: cur_vy_max;
@@ -102,8 +100,8 @@ M$ :prev_time;
 				move_event.x prev_x - :dx;
 				move_event.y prev_y - :dy;
 				
-				dx 0 = ! { dx move_dt * drag_intensity * velocity_gain_x.rows yo I :& xo I @ + \ xo D; } ?
-				dy 0 = ! { dy move_dt * drag_intensity * velocity_gain_y.rows yo I :& xo I @ + \ xo D; } ?
+				dx 0 = ! { dx move_dt * drag_intensity * velocity_gain_x yo I :& xo I @ + \ xo D; } ?
+				dy 0 = ! { dy move_dt * drag_intensity * velocity_gain_y yo I :& xo I @ + \ xo D; } ?
 				drag_density_gain move_dt * densities yo I :& xo I @ + \ xo D;
 				
 				move_event.x :prev_x;
@@ -119,15 +117,15 @@ M$ :prev_time;
 	print_frame_delta {M$ :start;}?
 	
 	.# apply velocity gain
-	velocity_x matrix._new velocity_gain_x + .rows :velocity_x;
-	velocity_y matrix._new velocity_gain_y + .rows :velocity_y;
+	velocity_x velocity_gain_x + :velocity_x;
+	velocity_y velocity_gain_y + :velocity_y;
 	
 	.# damp gains
 	velocity_gain_x 0.8 * :velocity_gain_x;
 	velocity_gain_y 0.8 * :velocity_gain_y;
 	
 	.# disperse density
-	densities matrix._new 0.99 * .rows :densities;
+	densities 0.99 * :densities;
 	
 	.# handle velocity update
 	velocity_x velocity_y advection_rate projection_rate viscosity fluid.simulate_velocity :velocity_y; :velocity_x;
@@ -136,9 +134,9 @@ M$ :prev_time;
 	densities velocity_x velocity_y diffusion_rate advection_rate fluid.simulate_density :densities;
 	
 	.# draw canvas
-	densities matrix._new:1\.pad.rows
-	velocity_x matrix._new:1\.pad.rows
-	velocity_y matrix._new:1\.pad.rows
+	densities :1\.pad
+	velocity_x :1\.pad
+	velocity_y :1\.pad
 	render_functions render_mode I ~
 	
 	print_frame_delta {

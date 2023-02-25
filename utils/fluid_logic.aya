@@ -1,4 +1,3 @@
-import ::matrix
 export ::fluid_logic
 
 class fluid_logic
@@ -9,24 +8,24 @@ class fluid_logic
 	
 	.# a boundary_func for fluid_logic::diffuse that duplicates the edge values outwards
 	def fluid_logic::boundary_duplicate {scalar_mat fluid_logic,
-		scalar_mat.rows :&0I \ :&:&E1-I \ .B.V
-					 .T :&0I \ :&:&E1-I \ .B.V .T matrix._new
+		scalar_mat :&0I \ :&:&E1-I \ .B.V
+					 .T :&0I \ :&:&E1-I \ .B.V .T
 	}
 	
 	.# a boundary_func for fluid_logic::diffuse
 	.#   it duplicates the left/right edge values
 	.#   and mirrors the top/bottom edge values
 	def fluid_logic::boundary_mirror_y {scalar_mat fluid_logic,
-		scalar_mat.rows :&0I:1* \ :&:&E1-I:1* \ .B.V
-					 .T :&0I    \ :&:&E1-I    \ .B.V .T matrix._new
+		scalar_mat :&0I:1* \ :&:&E1-I:1* \ .B.V
+					 .T :&0I    \ :&:&E1-I    \ .B.V .T
 	}
 	
 	.# a boundary_func for fluid_logic::diffuse
 	.#   it mirrors the left/right edge values
 	.#   and duplicates the top/bottom edge values
 	def fluid_logic::boundary_mirror_x {scalar_mat fluid_logic,
-		scalar_mat.rows :&0I    \ :&:&E1-I    \ .B.V
-					 .T :&0I:1* \ :&:&E1-I:1* \ .B.V .T matrix._new
+		scalar_mat :&0I    \ :&:&E1-I    \ .B.V
+					 .T :&0I:1* \ :&:&E1-I:1* \ .B.V .T
 	}
 
 
@@ -69,7 +68,7 @@ class fluid_logic
 	.# compute a new grid of scalars that are diffused (each cell approaches the average of its neighbors)
 	.# boundary_func must be a function mapping from the inner matrix to the full matrix, e.g. '{mat, mat 1\.pad}'
 	def fluid_logic::diffuse {scalar_grid::list rate::num boundary_func::block self,
-		scalar_grid matrix._new :old_mat $ :new_mat;;
+		scalar_grid :old_mat $ :new_mat;;
 		
 		self.solver_iterations .R :# {iteration,
 			{new_mat.rotate_rows} :rr;
@@ -82,7 +81,7 @@ class fluid_logic
 			4 rate * 1 + /
 			:1\.pad boundary_func :new_mat;
 		};
-		new_mat.rows
+		new_mat
 	}
 	
 	.# given a grid of scalars, compute a new grid of scalars that are carried along by the given velocities
@@ -93,17 +92,17 @@ class fluid_logic
 		self.y_dim 	:y_dim;
 		
 		[ .# for x,y gather scalars[ [x y] [x y+1] [x+1 y] [x+1 y+1] ]
-			scalar_grid matrix._new
+			scalar_grid
 			:& :1 \ .rotate_rows
 			:& :1 \ .rotate_cols
 			:& 1 \ .rotate_rows \
-		]:#{.rows}.T:#{.T} :scalars_xoyo_xoyi_xiyo_xiyi;
+		] .T:#{.T} :scalars_xoyo_xoyi_xiyo_xiyi;
 		
 		[
 			[x_dim 2-R {:&} y_dim 3- %] 		.# for every non-boundary grid cell, store x coordinate
 			[y_dim 2-R {:&} x_dim 3- %].T 		.# non-boundary y coordinates
-			:1 velocity_x matrix._new.pad .rows	.# non-boundary x velocities
-			:1 velocity_y matrix._new.pad .rows	.# non-boundary y velocities
+			:1 velocity_x .pad	.# non-boundary x velocities
+			:1 velocity_y .pad	.# non-boundary y velocities
 		].T:#{.T:#{~ :vy; :vx; :y; :x; .# for every non-boundary cell as [x y vx vy]
 			x vx advection_rate * -   0.5.<   x_dim 1.5-.> :xs .\ :xo;
 			y vy advection_rate * -   0.5.<   y_dim 1.5-.> :ys .\ :yo;
@@ -116,21 +115,21 @@ class fluid_logic
 			\ dxi dyo * * +
 			\ dxo dyi * * +
 			\ dxo dyo * * +
-		}}matrix._new boundary_func .rows
+		}}boundary_func
 	}
 	
 	.# ensure that velocities are mass conserving by removing divergence
 	.# returns new {velocity_x velocity_y}
 	def fluid_logic::project {velocity_x::list velocity_y::list projection_rate::num self,
-		velocity_x matrix._new :velocity_x;
-		velocity_y matrix._new :velocity_y;
+		velocity_x :velocity_x;
+		velocity_y :velocity_y;
 		
 		:1 velocity_x.rotate_cols   1 velocity_x.rotate_cols  -
 		:1 velocity_y.rotate_rows   1 velocity_y.rotate_rows  - +
 		:0.5 projection_rate * *
 		:1\.pad fluid_logic.boundary_duplicate :divergence;
 		
-		[self.y_dim self.x_dim] matrix.zeros :poisson;
+		[self.y_dim self.x_dim] 0\L :poisson;
 		
 		self.solver_iterations .R :# {iteration,
 			{poisson.rotate_rows} :rr;
@@ -146,5 +145,5 @@ class fluid_logic
 		velocity_y :1 poisson.rotate_rows 1 poisson.rotate_rows - 0.5 projection_rate / * -
 		:1\.pad fluid_logic.boundary_mirror_y :velocity_y;
 		
-		velocity_x.rows velocity_y.rows
+		velocity_x velocity_y
 	}
