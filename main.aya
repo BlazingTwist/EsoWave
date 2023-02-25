@@ -2,6 +2,8 @@
 	This main is a mess, I'm sorry.
 .}
 
+bp
+
 import ::canvas
 import ::matrix
 import "utils.fluid_logic"
@@ -26,7 +28,7 @@ grid_size_y 2+ 2/ :center;
 {densities velocity_x velocity_y,
 	densities    E :size_y;
 	densities.[0]E :size_x;
-	densities :#{{.|\.|.<}/}{.<}/ :d_max;
+	densities :#{{.|\.|.<}%}{.<}% :d_max;
 	
 	cur_d_max d_max move_towards 0.5.< :cur_d_max;
 	
@@ -40,9 +42,9 @@ grid_size_y 2+ 2/ :center;
 {densities velocity_x velocity_y,
 	densities    E :size_y;
 	densities.[0]E :size_x;
-	velocity_x :#{{.|\.|.<}/}{.<}/ :vx_max;
-	velocity_y :#{{.|\.|.<}/}{.<}/ :vy_max;
-	densities :#{{.|\.|.<}/}{.<}/ :d_max;
+	velocity_x :#{{.|\.|.<}%}{.<}% :vx_max;
+	velocity_y :#{{.|\.|.<}%}{.<}% :vy_max;
+	densities :#{{.|\.|.<}%}{.<}% :d_max;
 	
 	cur_vx_max vx_max move_towards 0.5.< :cur_vx_max;
 	cur_vy_max vy_max move_towards 0.5.< :cur_vy_max;
@@ -58,8 +60,8 @@ grid_size_y 2+ 2/ :center;
 {densities velocity_x velocity_y,
 	densities    E :size_y;
 	densities.[0]E :size_x;
-	velocity_x :#{{.|\.|.<}/}{.<}/ :vx_max;
-	velocity_y :#{{.|\.|.<}/}{.<}/ :vy_max;
+	velocity_x :#{{.|\.|.<}%}{.<}% :vx_max;
+	velocity_y :#{{.|\.|.<}%}{.<}% :vy_max;
 	
 	cur_vx_max vx_max move_towards 0.5.< :cur_vx_max;
 	cur_vy_max vy_max move_towards 0.5.< :cur_vy_max;
